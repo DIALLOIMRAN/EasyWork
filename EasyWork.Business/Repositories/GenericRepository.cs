@@ -3,7 +3,6 @@ using EasyWork.Data;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -69,14 +68,7 @@ namespace EasyWork.Business.Repositories
 
         public void Save()
         {
-            try
-            {
-                _context.SaveChanges();
-            }
-            catch (Exception e)
-            {
-                throw e;
-            }
+            DataContext.SaveChanges();
         }
         #endregion
     }

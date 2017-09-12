@@ -16,5 +16,6 @@ namespace EasyWork.Models
         public string Avatar { get; set; }
         public string Cv { get; set; }
         public string Ville { get; set; }
+        public int RefVille { get; set; }
     }
 }

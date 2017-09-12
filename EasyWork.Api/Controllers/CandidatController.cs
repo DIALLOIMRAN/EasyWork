@@ -22,76 +22,116 @@ namespace EasyWork.Controllers
         }
 
         // GET: api/Candidat
-        //public HttpResponseMessage Get()
-        //{
-        //    try
-        //    {
-        //        var products = _candidatsRepository.All();
-
-        //        var code = (products != null) ? HttpStatusCode.OK : HttpStatusCode.NoContent;
-        //        return Request.CreateResponse(code, products);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, ex.Message);
-        //    }
-        //}
-
-        // GET: api/Candidat
         public HttpResponseMessage Get(HttpRequestMessage request)
         {
-            //filter = filter.ToLower().Trim();
-
             return CreateHttpResponse(request, () =>
             {
-                // HttpResponseMessage response = null;
-
-                //var candidats = _candidatsRepository.GetAll()
-                //    .Where(c => c.Nom.ToLower().Contains(filter) ||
-                //    c.Prenom.ToLower().Contains(filter) ||
-                //    c.Email.ToLower().Contains(filter)).ToList();
-
                 var candidats = Mapper.Map<IEnumerable<CandidatViewModel>>(_candidatsRepository.GetAll());
                 return request.CreateResponse(HttpStatusCode.OK, candidats);
             });
         }
 
-        // POST: api/Candidat
-        //[HttpPost]
-        //public HttpResponseMessage Post([FromBody] Candidat value)
-        //{
-        //    try
-        //    {
-        //        _candidatsRepository.Add(value);
-        //        _candidatsRepository.Save();
-        //        return Request.CreateResponse(HttpStatusCode.OK, value);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, ex.Message);
-        //    }
-        //}
-
-        // POST: api/Candidat
-        [HttpPost]
-        public HttpResponseMessage Post(HttpRequestMessage request, Candidat value)
+        // GET: api/Candidat/1
+        public HttpResponseMessage Get(HttpRequestMessage request, int id)
         {
             return CreateHttpResponse(request, () =>
             {
-                //HttpResponseMessage response = null;
+                var candidat = _candidatsRepository.GetById(id);
+                if (candidat != null)
+                {
+                    return request.CreateResponse(HttpStatusCode.OK, Mapper.Map<CandidatViewModel>(candidat));
+                }
+                return request.CreateErrorResponse(HttpStatusCode.NoContent, "Pas de candidat pour cette requete !");
+            });
+        }
 
+        // POST: api/Candidat
+        [HttpPost]
+        public HttpResponseMessage Post(HttpRequestMessage request, CandidatViewModel model)
+        {
+            return CreateHttpResponse(request, () =>
+            {
+                if (!ModelState.IsValid)
+                {
+                    return request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
+                }
+                var candidat = MakeModel(model);
+                _candidatsRepository.Add(candidat);
+                _unitOfWork.Commit();
+
+
+                return request.CreateResponse(HttpStatusCode.Created, Mapper.Map<CandidatViewModel>(candidat));
+            });
+        }
+
+        // PUT: api/Candidat/1
+        [HttpPut]
+        public HttpResponseMessage Put(HttpRequestMessage request, int id, CandidatViewModel model)
+        {
+            return CreateHttpResponse(request, () =>
+            {
+                if (!ModelState.IsValid)
+                {
+                    return request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
+                }
+                
+                var candidat = _candidatsRepository.GetById(id);
+                if(candidat != null)
+                {
+                    model.Id = id;
+                    candidat = MakeModel(model);
+
+                    _candidatsRepository.Update(candidat);
+                    _unitOfWork.Commit();
+
+                    return request.CreateResponse(HttpStatusCode.OK, Mapper.Map<CandidatViewModel>(candidat));
+                }
+                return request.CreateErrorResponse(HttpStatusCode.NoContent, "Pas de candidat pour cette requete !");
+            });
+        }
+
+        // DELETE: api/Candidat/1
+        [HttpPut]
+        public HttpResponseMessage Delete(HttpRequestMessage request, int id)
+        {
+            return CreateHttpResponse(request, () =>
+            {
                 if (!ModelState.IsValid)
                 {
                     return request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
                 }
 
-                _candidatsRepository.Add(value);
-                _unitOfWork.Commit();
-                
+                var candidat = _candidatsRepository.GetById(id);
+                if (candidat != null)
+                {
+                    _candidatsRepository.Delete(candidat);
+                    _unitOfWork.Commit();
 
-                return request.CreateResponse(HttpStatusCode.Created, Mapper.Map<CandidatViewModel>(value)); ;
+                    return request.CreateResponse(HttpStatusCode.OK, Mapper.Map<CandidatViewModel>(candidat));
+                }
+
+                return request.CreateErrorResponse(HttpStatusCode.NoContent, "Pas de candidat pour cette requete !");
             });
         }
 
+        // Helpers methods
+        private Candidat MakeModel(CandidatViewModel vm)
+        {
+            return new Candidat
+            {
+                Adresse = vm.Adresse,
+                Avatar = vm.Avatar,
+                Civilite = vm.Civilite,
+                Cv = vm.Cv,
+                Email = vm.Email,
+                Id = vm.Id,
+                Naissance = vm.Naissance,
+                Nom = vm.Nom,
+                Password = vm.Password,
+                Prenom = vm.Prenom,
+                RefVille = vm.RefVille,
+                Telephone = vm.Telephone
+            };
+        }
     }
 }
